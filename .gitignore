@@ -48,3 +48,9 @@ po/*~
 
 # RStudio Connect folder
 rsconnect/
+
+# data folder (contains saved data originally scraped from Baseball Savant)
+data/
+
+# trained-models folder
+trained-models/

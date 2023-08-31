@@ -1,0 +1,717 @@
+---
+title: "Situational Hitting"
+author: "David Cohn"
+date: "September 6, 2023"
+output: html_document
+---
+
+Not all plate appearances are created equal.
+
+In game 6 of the 2011 World Series, David Freese stepped to the plate with two
+out in the bottom of the 9th inning and his Cardinals facing elimination. With a
+two run deficit and two men on base, Freese was both the potential winning run
+and the Cardinals' final hope. Per
+[Baseball Reference](https://www.baseball-reference.com/postseason/2011_WS.shtml),
+the championship leverage index (cLI) was 302.97 - meaning that this plate
+appearance had just over 300 times more influence on the Cardinals' likelihood
+of winning the World Series than an average Opening Day plate appearance. Under
+that incredible pressure, Freese drove the 1-2 offering from Rangers closer
+Neftali Feliz off the wall in right field for a
+[triple](https://www.mlb.com/video/freese-s-clutch-at-bat-c19955555), tying the
+game and extending his team's season.
+
+Freese's next turn at the dish came two innings later, when he led off the
+bottom of the 11th inning with the score tied at 9, and the cLI was a
+comparatively modest 198.37. He delivered a
+[walk-off home run](https://www.mlb.com/video/freese-s-walk-off-homer-c19955637)
+to dead centre field, sending the series to game 7. In his first plate
+appearance of that game, Freese would again find two out, a two run deficit, two
+men on base, and a sky-high cLI (288.33). And he came through yet again, tying
+the game with a
+[double](https://www.mlb.com/video/freese-s-two-run-double-c19957365) to
+left-centre.
+
+Three consecutive plate appearances in critical situations. Three consecutive
+extra-base hits. Freese drove in 21 runs during the 2011 postseason,
+[setting](https://www.baseball-reference.com/postseason/Playoffs_batting.shtml)
+a record that still stands today, and
+[batted](https://www.baseball-reference.com/players/f/freesda01.shtml) .397.
+Freese had hit well all season -
+[slashing](https://www.baseball-reference.com/players/f/freesda01.shtml)
+.297/.350/.441 - but this was clearly different. When it had mattered most, he
+had found a way to elevate his game and almost single-handedly push the
+Cardinals to a World Series title. He was a **clutch hitter**.
+
+The notion of some batters performing either better or worse than their skill
+would suggest in clutch situations is probably almost as old as baseball itself.
+Take Duffy Lewis, who along with Harry Hooper and the legendary Tris Speaker
+composed the Red Sox "Golden Outfield" of the early 1910s. Lewis was recognized
+by both anecdotes and statistics as the weakest hitter of the three, but he was
+simultaneously considered to be the most fearsome in clutch situations. A 1941
+[article](https://www.newspapers.com/article/80700375/yankee-outfield-great-but-old-timers-st/)
+in the Coshocton Tribune records that Walter Johnson, himself one of the
+greatest pitchers to ever live, "candidly admitted Lewis was the swatter he most
+dreaded to face when hits meant runs". In recent years, batters such as Derek
+Jeter, David Ortiz, and Reggie Jackson (also known as "Mr. October" for his
+postseason heroics) are also widely considered accomplished clutch hitters.
+
+The stories that surround playoff victories and walk-off hits are almost
+irresistibly appealing. We want to believe that some players are special. Driven
+by a loyalty to their teammates, or a need to prove themselves, or just a hunger
+to win, we want to think that the sport's greatest legends were capable of
+bearing down when all the chips were on the table and manifesting greatness.
+That belief gives baseball's most unforgettable moments even more emotional
+weight than they already carry.
+
+But it's a lie. Clutch hitting is nothing more than luck, and clutch hitters
+don't actually exist.
+
+Quantitative [research](https://sabr.org/journal/article/do-clutch-hitters-exist/)
+has [consistently](https://sabr.org/journal/article/clutch-hitting-and-the-cramer-test/)
+[failed](https://www.baseballprospectus.com/news/article/39527/flu-like-symptoms-clutch-hitting-curve/)
+to uncover any evidence whatsoever that clutch hitting is a genuine, repeatable
+skill. On the face of it, it's even difficult to construct an explanation for
+how clutch hitting *could* be a skill. If some batters are capable of digging
+deeper and improving their ability in high-leverage situations, then why don't
+they do so for every plate appearance? Batters only step up to the plate 4 or 5
+times in a typical game; from their perspective, baseball shouldn't be a game of
+endurance where it could be wise to give less than 100% in relatively
+unimportant situations.
+
+But while clutch hitting has been studied extensively, far less attention has
+been paid to its cousin: situational hitting. It might not be possible for
+batters to simply hit better in clutch situations, but is it possible for them
+to hit *differently*? I'll define situational hitting as a deliberate change in
+a batter's approach at the plate in response to any of: the score of the game,
+the number of outs, or the presence of runners on base. Critically, situational
+hitting doesn't ask whether batters actually *improve* in these situations, but
+rather if they can deliberately sacrifice certain attributes, such as power, in
+exchange for others.
+
+For example, if there's a runner on third base with two out in the bottom of the
+ninth inning and the score is tied, a single is just as valuable as a home run.
+Defensive alignments are shifted in these situations, but do hitters also make
+adjustments? For that matter, do pitchers? As another example, the infield will
+often come in if there's a runner on third base and less than two out, so that
+a ground ball is less likely to score the runner. Are certain hitters capable of
+sacrificing something in these situations - perhaps some amount of batting
+average - in exchange for a higher fly ball to ground ball ratio?
+
+On a macroscopic level, it certainly feels as though batters should have
+influence not only over the overall quality of their hitting, but also its type.
+One famous example of this involves Ty Cobb, a renowned contact hitter whose
+career overlapped with the beginning of the live ball era. Cobb, tired of
+journalists fawning over Babe Ruth's home runs and insinuating that Cobb's
+split-handed grip ruined any power that he might have had,
+[supposedly](https://www.bigleagueinvestigations.com/post/did-ty-cobb-call-his-shot-in-st-louis-in-25-new-information-strongly-suggests-that-he-did-indeed)
+told a pair of sportswriters that he would actually *try* to hit for power in an
+upcoming series against St. Louis. He then proceeded to hit five home runs in a
+two game span. Conversely, Ruth
+[asserted](https://www.espn.com/classic/s/000724baberuthquotes.html) in a
+famous, if perhaps apocryphal quote, "If I'd just tried for them dinky singles I
+could've batted around .600". Even in the modern era, Ichiro, who piled up 4367
+hits in his career while rarely depositing a ball over the fence,
+[possessed](https://www.theringer.com/2016/7/28/16041992/should-ichiro-have-hit-homers-c96633a61262)
+spectacular batting practice power and once
+[claimed](http://usatoday30.usatoday.com/sports/baseball/allstar/2007-07-10-all-star-game_N.htm),
+"If I’m allowed to hit .220, I could probably hit 40 [homers]".
+
+So, were Cobb, Ruth, and Ichiro right? Are batters capable of significantly
+altering what type of hitter they are on demand, and do they actually do so when
+the situation makes a different approach advantageous? In this series, I'll try
+to answer these types of questions, starting with the most common "situation" -
+the double play situation.
+
+Here's the first question: when there's a man on first and less than two out, do
+batters and pitchers make an extra effort to avoid or induce, respectively,
+double play balls? To answer this, I'll first need to understand the factors
+that cause a batted ball to become a double play ball; in other words, I need to
+study the anatomy of a double play.
+
+## Part One: Anatomy of a Double Play
+
+```{r setup, echo = FALSE, message = FALSE}
+knitr::opts_chunk$set(echo = TRUE, message = FALSE, warning = FALSE)
+here::i_am("topics/situational-hitting/01.anatomy_of_a_double_play.Rmd")
+suppressPackageStartupMessages({
+  library(tidyverse)
+  library(glue)
+  library(caret)
+  library(here)
+  library(kableExtra)
+  library(gridExtra)
+})
+
+all_pitches_csv <- here("data", "all_pitches.csv")
+running_splits_csv <- here("data", "running_splits.csv")
+xgidp_knn_rds <- here("trained-models", "xgidp_cv.rds")
+```
+
+### Load Data
+
+Let's start by pulling data for every pitch from the 2021 and 2022 regular
+seasons. I'll do this using the Statcast Search at
+https://baseballsavant.mlb.com/statcast_search with the following settings:
+
+- Player Type: "Batter"
+- Group By: "Player and Event"
+- Season Type: "Regular Season"
+
+To keep any individual query from growing too large, I'll split the search into
+smaller queries by iterating over the season, each of the 30 MLB teams,
+home/away status, the number of outs, and the batter's handedness. I'll store
+the resulting csv locally to avoid having to query Statcast every time I run
+this analysis.
+
+```{r query-statcast-all-pitches, eval = FALSE}
+query_statcast <- function(handedness, park, outs, team, season, template_url) {
+  Sys.sleep(5 * runif(n = 1))
+  result <- glue(template_url) %>%
+    read_csv(show_col_types = FALSE)
+  return(result)
+}
+
+handedness <- c("L", "R")
+park <- c("Home", "Road")
+outs <- c(0, 1, 2)
+team <- c(
+  "AZ", "ATL", "BAL", "BOS", "CHC", "CWS", "CIN", "CLE", "COL", "DET", "HOU",
+  "KC", "LAA", "LAD", "MIA", "MIL", "MIN", "NYM", "NYY", "OAK", "PHI", "PIT",
+  "SD", "SEA", "SF", "STL", "TB", "TEX", "TOR", "WSH"
+)
+season <- c(2021, 2022)
+query_settings <- crossing(handedness, park, outs, team, season)
+
+all_pitches_url <- "https://baseballsavant.mlb.com/statcast_search/csv?hfPTM=&hfPT=&hfAB=&hfGT=R%7C&hfPR=&hfZ=&hfStadium=&hfBBL=&hfNewZones=&hfPull=&hfC=&hfSea={season}%7C&hfSit=&player_type=batter&hfOuts={outs}%7C&hfOpponent=&pitcher_throws=&batter_stands={handedness}&hfSA=&game_date_gt=&game_date_lt=&hfMo=&hfTeam={team}%7C&home_road={park}&hfRO=&position=&hfInfield=&hfOutfield=&hfInn=&hfBBT=&hfFlag=&metric_1=&group_by=name-event&min_pitches=0&min_results=0&min_pas=0&sort_col=pitches&player_event_sort=api_p_release_speed&sort_order=desc&chk_event_release_speed=on&type=details&all=true"
+
+pmap(query_settings, query_statcast, .progress = TRUE, all_pitches_url) %>%
+  bind_rows() %>%
+  write_csv(all_pitches_csv)
+```
+
+I'll also going to make use of data that breaks down running splits from home
+to first base for every batter in the 2021 and 2022 seasons. I can download
+this directly from the Baseball Savant running splits
+[leaderboard](https://baseballsavant.mlb.com/running_splits).
+
+```{r download-running-splits, eval = FALSE}
+download_running_splits <- function(season, template_url) {
+  result <- glue(template_url) %>%
+    read_csv(show_col_types = FALSE) %>%
+    mutate(season = season)
+  return(result)
+}
+
+running_splits_url <-
+  "https://baseballsavant.mlb.com/running_splits?type=raw&bats=&year={season}&position=&team=&min=5&csv=true"
+
+map(season, download_running_splits, running_splits_url) %>%
+  bind_rows() %>%
+  write_csv(running_splits_csv)
+```
+
+```{r load-statcast-data}
+all_pitches <- read_csv(all_pitches_csv, show_col_types = FALSE)
+running_splits <- read_csv(running_splits_csv, show_col_types = FALSE)
+```
+
+### Clean Data
+
+Our raw pitch-by-pitch data contains `r ncol(all_pitches)` columns, but I'll
+only need to keep the following ones:
+
+- game_date: The date of the game in which the pitch was thrown.
+- player_name: The name of the batter.
+- events: If the pitch ended a plate appearance, this describes how.
+- description: The immediate outcome of the pitch.
+- stand: The handedness of the batter.
+- on_1b: The MLB player ID of the runner on first base, if any.
+- outs_when_up: The number of outs.
+- launch_speed: The speed of the ball immediately after the batter makes
+contact, if any.
+- launch_angle: The angle of the ball's trajectory relative to the horizontal
+plane immediately after the batter makes contact, if any.
+
+```{r select-necessary-columns-from-pitch-data}
+all_pitches <- all_pitches %>%
+  select(
+    game_date, player_name, events, description, stand, on_1b, outs_when_up,
+    launch_speed, launch_angle
+  )
+```
+
+In addition, I can make my future life easier by modifying and creating some
+columns:
+
+- The "on_1b" column should contain logicals that record whether or not the base
+is occupied.
+- An "is_PA" column that records which pitches ended plate appearances.
+- A "key" column that holds a unique ID value for each pitch.
+- A "season" column that holds the season each pitch was thrown in.
+
+```{r clean-pitch-data}
+all_pitches <- all_pitches %>%
+  mutate(
+    on_1b = !is.na(on_1b),
+    is_ball_in_play = events %in% c(
+      "single", "field_out", "home_run", "grounded_into_double_play",
+      "force_out", "double", "triple", "sac_bunt", "field_error",
+      "fielders_choice_out", "fielders_choice", "strikeout_double_play",
+      "sac_fly_double_play", "triple_play", "double_play", "sac_fly"
+    ),
+    is_PA = is_ball_in_play | events %in% c(
+      "walk", "strikeout", "hit_by_pitch", "catcher_interf"
+    ),
+    key = 1:nrow(all_pitches),
+    season = year(game_date)
+  )
+
+slice_head(all_pitches, n = 5) %>%
+  kbl(
+    align = rep("c", ncol(all_pitches)),
+    caption = 'Initial rows of the "all_pitches" table'
+  ) %>%
+  kable_styling(
+    bootstrap_options = c("striped", "hover", "condensed", "responsive")
+  )
+```
+Our running splits data also contains a number of columns that I don't need.
+I'll only keep the following ones:
+
+- last_name and first_name: I'll combine these into a "player_name" column that
+stores the name of the batter.
+- season: The season from which the running splits are sourced.
+- bat_side: The handedness of the batter. I'll rename this to "stand" for
+consistency with our pitch-by-pitch data.
+- seconds_since_hit_090: The time in seconds for the batter to reach first base,
+on competitive plays, after making contact. I'll rename this to "home_to_first".
+
+```{r clean-splits-data}
+running_splits <- running_splits %>%
+  mutate(player_name = glue("{last_name}, {first_name}")) %>%
+  rename(stand = "bat_side", home_to_first = "seconds_since_hit_090") %>%
+  select(player_name, season, stand, home_to_first)
+
+slice_head(running_splits, n = 5) %>%
+  kbl(
+    align = rep("c", ncol(running_splits)),
+    caption = 'Initial rows of the "running_splits" table'
+  ) %>%
+  kable_styling(
+    full_width = FALSE,
+    bootstrap_options = c("striped", "hover", "condensed", "responsive")
+  )
+```
+
+### Analysis
+
+Before I get too far into studying double play balls, it's probably a good idea
+to confirm that batters have some level of control over whether their batted
+balls turn into double plays. If it were to turn out that ground ball double
+plays were just a result of bad luck (like line drive double plays), then there
+would be little point in investigating them further.
+
+Let's construct a simple leaderboard that ranks batters by GIDP-BIP, which
+I'll define as the number of times a batter **g**rounds **i**nto **d**ouble
+**p**lays (GIDP) divided by the number of times that they put the **b**all
+**i**n **p**lay (including homeruns) with a runner on first and less than 2
+outs. I'll impose a minimum of 50 balls in play in GIDP opportunities (GIDPOs)
+over either 2021 or 2022.
+
+```{r construct-GIDP-BIP-leaderboard}
+gidp_bip_leaderboard <- all_pitches %>%
+  filter(is_ball_in_play) %>%
+  summarize(
+    GIDP = sum(events == "grounded_into_double_play"),
+    GIDPO = sum(on_1b & (outs_when_up < 2)),
+    .by = c("player_name", "season", "stand")
+  ) %>%
+  filter(GIDPO >= 50) %>%
+  mutate("GIDP-BIP" = 100 * GIDP / GIDPO)
+
+min_max_gidp_bip_batters <- bind_rows(
+  slice_max(gidp_bip_leaderboard, order_by = `GIDP-BIP`, n = 5),
+  slice_min(gidp_bip_leaderboard, order_by = `GIDP-BIP`, n = 5)
+)
+
+min_max_gidp_bip_batters %>%
+  kbl(
+    col.names = c("Batter", "Season", "Bats", "GIDP", "GIDPO", "GIDP-BIP (%)"),
+    align = rep("c", ncol(min_max_gidp_bip_batters)), digits = 1
+  ) %>%
+  kable_styling(
+    full_width = FALSE,
+    bootstrap_options = c("striped", "hover", "condensed", "responsive")
+  ) %>%
+  pack_rows("Highest GIDP-BIP", 1, 5) %>%
+  pack_rows("Lowest GIDP-BIP", 6, 10)
+```
+There's clearly significant variance in GIDP-BIP between players. In 2021, Josh
+Donaldson's GIDP-BIP of 32.4% was nearly 20 times greater than Eduardo Escobar's
+1.7%. Some of this variance is bound to be luck, but the sheer size of this
+difference between players suggests that there are likely causal explanations.
+
+There are two fairly obvious possible reasons why some batters might hit into
+far more double plays than others:
+
+- Batters who tend to hit ground balls, and who consequently have low launch
+angles, seem likely to hit into more GIDPs than fly ball hitters.
+- Batters who take longer to reach first base after making contact should beat
+out the throw from second to first less often, causing them to hit into more
+GIDPs than faster batters. 
+
+Let's test whether a batter's average launch angle and time to reach first base
+are indeed correlated with their GIDP-BIP.
+
+```{r explain-GIDP-BIP}
+launch_angle_leaderboard <- all_pitches %>%
+  filter(
+    description == "hit_into_play", !is.na(launch_angle)
+  ) %>%
+  summarize(
+    launch_angle = mean(launch_angle),
+    .by = c("player_name", "stand", "season")
+  )
+
+gidp_modelling <- reduce(
+  list(gidp_bip_leaderboard, launch_angle_leaderboard, running_splits),
+  inner_join,
+  by = c("player_name", "stand", "season")
+)
+
+launch_angle_vs_gidp_bip <-
+  ggplot(gidp_modelling, mapping = aes(x = launch_angle, y = `GIDP-BIP`)) +
+  geom_smooth(method = lm, se = FALSE) +
+  geom_point(alpha = 0.25) +
+  xlab("Average launch angle (˚)") +
+  ylab("GIDP-BIP (%)")
+
+home_to_first_vs_gidp_bip <-
+  ggplot(gidp_modelling, mapping = aes(x = home_to_first, y = `GIDP-BIP`)) +
+  geom_smooth(method = lm, se = FALSE) +
+  geom_point(alpha = 0.25) +
+  xlab("Average seconds to reach first base") +
+  ylab("GIDP-BIP (%)")
+
+grid.arrange(launch_angle_vs_gidp_bip, home_to_first_vs_gidp_bip, nrow = 1)
+
+gidp_bip_correlations <- gidp_modelling %>%
+  select(launch_angle, home_to_first, `GIDP-BIP`) %>%
+  cor(method = "spearman")
+
+gidp_bip_correlations %>%
+  kbl(
+    align = rep("c", ncol(gidp_bip_correlations)),
+    digits = 3,
+    caption = "Spearman correlation matrix"
+  ) %>%
+  kable_styling(
+    full_width = FALSE,
+    bootstrap_options = c("striped", "hover", "condensed", "responsive")
+  )
+```
+Judging from these plots and the corresponding Spearman correlations, it appears
+that both of these factors influence, but certainly don't fully explain,
+inter-batter variance in GIDP-BIP. This may also explain in part why
+left-handed hitters, who have to travel a shorter distance from their batter's
+box to first base, were over-represented in the "lowest GIDP-BIP" leaderboard
+shown above. It's possible that the tendency of left-handed hitters to hit to
+the right side of the infield also impacts their collective GIDP-BIP, but we'll
+save an exploration of spray angle for a later part of this series.
+
+While batter speed sits outside the scope of this investigation of situational
+hitting, launch angle does not. It, together with launch speed (also called exit
+velocity) is known to be very much under the batter's influence, and
+consequently it's conceivable that batters could deliberately alter their
+average launch angle - and thus their likelihood of grounding into a double play
+- in specific situations.
+
+To assess whether batters modulate their launch angle and/or launch speed to
+try and avoid double plays, we'll first need a way of quantifying how likely a
+given ball put into play is to be a GIDP, based only on those two factors.
+I'll call this metric "expected GIDP", or xGIDP.
+
+To calculate xGIDP, I'll take a cue from how other expected statistics such as
+xBA are
+[calculated](https://technology.mlblogs.com/augmenting-statcast-expected-batting-average-with-sprint-speed-6be7f60770d2),
+and leverage a *k*-nearest neighbours regression model. I'll train the model on
+every ball hit into play during a double play situation in the 2021 or 2022
+regular seasons.
+
+```{r set-up-for-xGIDP}
+knn_data <- all_pitches %>%
+  filter(
+    is_ball_in_play,
+    on_1b & outs_when_up < 2,
+    !is.na(launch_speed) & !is.na(launch_angle)
+  ) %>%
+  mutate(is_gidp = (events == "grounded_into_double_play"))
+```
+
+One day while I was working on this article, Vladimir Guerrero Jr. made a
+[heads-up play](https://www.mlb.com/video/yimi-garcia-in-play-out-s-to-will-benson)
+on a Will Benson pop-up to record what is (technically) a GIDP. Let's check our
+data to confirm that it doesn't contain any other pop-ups or fly balls that were
+recorded as GIDPs, using a 30˚ launch angle as a cutoff.
+
+```{r check-for-popup-GIDPs}
+filter(knn_data, is_gidp & launch_angle > 30) %>%
+  select(key, is_gidp, game_date, player_name, launch_speed, launch_angle) %>%
+  kable(
+    align = rep("c", 6),
+    caption = "GIDPs with suspiciously high launch angles"
+  ) %>%
+  kable_styling(
+    bootstrap_options = c("striped", "hover", "condensed", "responsive")
+  )
+```
+
+I'll use the [video search](https://www.mlb.com/video) feature of the MLB
+website to track down and watch the replays of each of these double plays.
+
+The results of that video review are as follows: 6 of the 13 "GIDPs" were
+actually pop-ups, and 4 of the 13 appeared on video to be completely ordinary
+ground balls, which suggests that the Statcast measurement of their launch angle
+was incorrect. Statcast errors aren't
+[unheard of](https://tht.fangraphs.com/the-physics-of-statcast-errors/),
+unfortunately. I'll use the "key" variable to exclude those 10 events from the
+dataset that the knn model will use, since they don't represent standard,
+accurately measured GIDPs.
+
+```{r remove-false-gidps}
+knn_data <- knn_data %>%
+  filter(
+    !key %in% c(
+      56059, 71061, 293783, 478616, 652624, 691855, 1064876, 1071663, 1153477,
+      1222223
+    )
+  )
+```
+
+Now I can set up to train the *k*-nearest neighbours regression model. I'll
+use a 80/20 training/test split. I'll also need to scale the predictors (launch
+angle and launch speed) so that they're weighted equally when calculating the
+distance between points.
+
+```{r prep-for-knn-training}
+set.seed(714)
+
+# caret assigns rownames, so the predictors should be in the form of a data
+# frame instead of a tibble.
+gidp_predictors <- knn_data %>%
+  select(launch_speed, launch_angle) %>%
+  as.data.frame()
+gidp_responses <- as.integer(knn_data$is_gidp)
+
+preprocessing <- preProcess(
+  gidp_predictors,
+  method = "range", rangeBounds = c(0, 1)
+)
+gidp_predictors <- predict(preprocessing, gidp_predictors)
+
+train_indices <- createDataPartition(gidp_responses, p = 0.8, list = FALSE)
+train_gidp_predictors <- gidp_predictors[train_indices, ]
+train_gidp_responses <- gidp_responses[train_indices]
+test_gidp_predictors <- gidp_predictors[-train_indices, ]
+test_gidp_responses <- gidp_responses[-train_indices]
+```
+
+*k*-nearest neighbour models only have one hyperparameter, *k*. It controls the
+number of nearest neighbours whose responses will be averaged to predict the
+response of novel inputs. The general heuristic is that the optimal value of *k*
+is often near sqrt(n), where n is the number of points in the training dataset.
+I'll use 10-fold cross-validation to calculate the root mean square error (RMSE)
+for different values of *k*, spanning from roughly 0.5 * sqrt(n) to 2 * sqrt(n).
+I'll also store the results of the cross-validation locally to avoid having to
+repeat this step every time I run this analysis.
+
+```{r train-knn-xGIDP-k-fold, eval = FALSE}
+knn_fit_control <- trainControl(method = "cv", number = 10)
+knn_grid <- expand.grid(k = seq(from = 100, to = 400, by = 20))
+
+xgidp_knn <- train(
+  x = train_gidp_predictors, y = train_gidp_responses, method = "knn",
+  trControl = knn_fit_control, tuneGrid = knn_grid
+) %>%
+  write_rds(xgidp_knn_rds)
+```
+
+```{r plot-k-vs-RMSE}
+cv_results <- read_rds(xgidp_knn_rds)$results
+
+ggplot(cv_results, mapping = aes(x = k, y = RMSE)) +
+  geom_point() +
+  scale_x_continuous(breaks = seq(from = 100, to = 400, by = 20))
+```
+
+The RMSE declines continuously up to k = 200, where it reaches a local minimum
+of `r round(cv_results$RMSE[cv_results$k == 200], digits = 3)`. Even though the
+global minimum RMSE is reached at k = 340, I'll use k = 200 in the final model
+to try and prevent overfitting. 
+
+Let's check how this model with k = 200 performs on our test dataset:
+
+```{r test-knn-xgidp}
+xgidp_knn <- train(
+  x = train_gidp_predictors, y = train_gidp_responses, method = "knn",
+  trControl = trainControl(method = "none"),
+  tuneGrid = expand.grid(k = 200)
+)
+
+test_gidp_predictions <- predict(xgidp_knn, newdata = test_gidp_predictors)
+knn_test_results <-
+  postResample(pred = test_gidp_predictions, obs = test_gidp_responses)
+```
+
+The RMSE is actually slightly lower on the test dataset
+(`r round(knn_test_results["RMSE"], digits = 3)`) than it was on the training
+dataset, which is great, as it suggests that we didn't overfit.
+
+We can now use our finalized model to assign an xGIDP to any launch angle/speed
+combination.
+
+```{r demonstrate-xgidp-model}
+mock_launch_speeds <- seq.int(from = 70, to = 110, by = 10)
+mock_launch_angles <- seq.int(from = -90, to = 90, by = 1)
+mock_xGIDP_data <- crossing(mock_launch_speeds, mock_launch_angles) %>%
+  rename(launch_speed = mock_launch_speeds, launch_angle = mock_launch_angles)
+scaled_mock_xGIDP_data <- predict(preprocessing, mock_xGIDP_data)
+
+mock_xGIDP_data %>%
+  mutate(xGIDP = predict(xgidp_knn, scaled_mock_xGIDP_data)) %>%
+  ggplot(mapping = aes(x = launch_angle, y = xGIDP, color = as.factor(launch_speed))) +
+  geom_line() +
+  scale_color_brewer(type = "qual") +
+  xlab("Launch angle (˚)") +
+  labs(color = "Launch speed (mph)")
+```
+
+The results here generally look reasonable. The xGIDP is highest for balls hit
+at moderately low launch angles (-25 to 0˚). At launch angles below -25˚, launch
+speed correlates positively with xGIDP, because softly hit balls won't reach
+infielders quickly enough. Conversely, launch speed is negatively correlated
+with xGIDP at positive launch angles (0 to 25˚), probably because hard hit balls
+are more likely to get past infielders for base hits. We also see that xGIDP
+declines to 0 as the launch angle increases further, with the decline happening
+more quickly for hard hit balls. 
+
+As a further sanity check, we can bin every ball put into play in a GIDP
+situation by xGIDP and then calculate the proportion of plays in each of those
+bins that actually resulted in a GIDP.
+
+```{r per-GIDP-by-xGIDP-bin}
+knn_data <- knn_data %>%
+  mutate(
+    xGIDP = predict(xgidp_knn, gidp_predictors),
+    xGIDP_bin = cut_width(xGIDP, width = 0.05, boundary = 0)
+  )
+
+knn_data %>%
+  summarize(percentage_of_GIDP = mean(is_gidp), .by = xGIDP_bin) %>%
+  ggplot() +
+  geom_point(mapping = aes(x = xGIDP_bin, y = percentage_of_GIDP)) +
+  xlab("Binned xGIDP") +
+  ylab("Actual proportion of GIDPs") +
+  scale_y_continuous(breaks = seq(from = 0, to = 0.55, by = 0.05))
+```
+
+The actual proportion of GIDPs for the plays in a given bin lies within the
+xGIDP bounds of the bin in all cases, which is great.
+
+Using this model, we can now calculate the xGIDP for *every* ball put in play in
+2021 and 2022, including those that weren't hit in double play situations. We
+can then do a couple of interesting things, including ranking hitters by their
+overall season xGIDP. This will remove the effects of batter speed and situation
+(i.e. was there a runner on first when a ground ball was hit) and just tell us
+which batters hit the most double play balls.
+
+```{r rank-hitters-by-xGIDP}
+all_balls_in_play <- all_pitches %>%
+  filter(
+    description == "hit_into_play", !is.na(launch_angle),
+    !is.na(launch_speed)
+  )
+
+all_xGIDP_predictors <- select(all_balls_in_play, launch_speed, launch_angle)
+all_xGIDP_predictors <- predict(preprocessing, all_xGIDP_predictors)
+
+all_balls_in_play <- all_balls_in_play %>%
+  mutate(xGIDP = predict(xgidp_knn, all_xGIDP_predictors))
+
+xGIDP_leaderboard <- all_balls_in_play %>%
+  summarize(
+    xGIDP = mean(xGIDP),
+    balls_in_play = n(),
+    .by = c("player_name", "season", "stand")
+  ) %>%
+  filter(balls_in_play >= 150)
+
+min_max_xGIDP_leaderboard <- bind_rows(
+  slice_max(xGIDP_leaderboard, order_by = xGIDP, n = 5),
+  slice_min(xGIDP_leaderboard, order_by = xGIDP, n = 5)
+)
+
+min_max_xGIDP_leaderboard %>%
+  kbl(
+    col.names = c("Batter", "Season", "Bats", "xGIDP", "Balls in Play"),
+    align = rep("c", ncol(min_max_xGIDP_leaderboard)), digits = 3
+  ) %>%
+  kable_styling(
+    full_width = FALSE,
+    bootstrap_options = c("striped", "hover", "condensed", "responsive")
+  ) %>%
+  pack_rows("Highest xGIDP", 1, 5) %>%
+  pack_rows("Lowest xGIDP", 6, 10)
+```
+
+And there we have it! At the top of the leaderboard sits Raimel Tapia, whose
+.225 xGIDP in 2021 nearly triples the lowest observed xGIDP: Nolan Gorman's .077
+mark in 2022. Tapia's ground ball rate in 2021 was a bewildering
+[67.5%](https://www.baseball-reference.com/players/t/tapiara01.shtml#batting_advanced),
+while Gorman's 2022 ground ball rate was just
+[27.2%](https://www.baseball-reference.com/players/g/gormano01.shtml#batting_advanced).
+It's also worth noting that Nick Madrigal's 2021 and 2022 seasons *both* make
+the top 5 by xGIDP.
+
+Finally, to confirm that avoiding GIDPs is truly a repeatable skill for batters
+and that it extends beyond simply being a fast runner, let's check how strongly
+correlated each player's 2021 xGIDP was to their 2022 result.
+
+```{r season-to-season-correlation-of-xGIDP}
+xGIDP_by_season <- xGIDP_leaderboard %>%
+  select(-balls_in_play) %>%
+  pivot_wider(
+    names_from = season, names_prefix = "xGIDP_", values_from = xGIDP
+  ) %>%
+  filter(if_all(starts_with("xGIDP"), ~ !is.na(.x)))
+
+ggplot(xGIDP_by_season) +
+  geom_point(mapping = aes(x = xGIDP_2021, y = xGIDP_2022)) +
+  coord_equal() +
+  xlim(c(0.05, 0.25)) +
+  ylim(c(0.05, 0.25)) +
+  xlab("2021 xGIDP") +
+  ylab("2022 xGIDP")
+```
+
+Even by eye, it's evident that there's a very strong year-to-year correlation
+for batter xGIDP. The r^2^ value here is
+`r round(cor(xGIDP_by_season$xGIDP_2021, xGIDP_by_season$xGIDP_2022, method = "pearson") ^ 2, digits = 3)`,
+which suggests that just under half of the inter-batter variance in 2022 xGIDPs
+can be explained by each batter's 2021 xGIDP.
+
+### Summary
+
+- Some batters hit into far more double plays than others.
+- Part of this variation is due to differences in average launch angle, which is
+a characteristic that batters could theoretically alter by changing their
+hitting approach in double play situations.
+- Launch angle and launch speed can be used to construct a *k*-nearest
+neighbours model that estimates the likelihood of a batted ball leading to a
+GIDP (xGIDP).
+- A batter's average xGIDP in one year is strongly correlated to their average
+xGIDP in the following year, suggesting that maintaining a low xGIDP is a true
+skill.
+
+Next time I'll examine whether xGIDP varies between double play situations and
+other situations, and if so, explore the causes of this variation.
