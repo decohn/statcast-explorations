@@ -11,7 +11,7 @@
 
 <meta name="author" content="David Cohn" />
 
-<meta name="date" content="2023-09-07" />
+<meta name="date" content="2023-09-06" />
 
 <title>Situational Hitting</title>
 
@@ -576,7 +576,7 @@ display: none;
 
 <h1 class="title toc-ignore">Situational Hitting</h1>
 <h4 class="author">David Cohn</h4>
-<h4 class="date">September 7, 2023</h4>
+<h4 class="date">September 6, 2023</h4>
 
 </div>
 
@@ -1492,7 +1492,8 @@ first base are indeed correlated with their GIDP-BIP.</p>
 
 gidp_modelling &lt;- reduce(
   list(gidp_bip_leaderboard, launch_angle_leaderboard, running_splits),
-  inner_join, by = c(&quot;player_name&quot;, &quot;stand&quot;, &quot;season&quot;)
+  inner_join,
+  by = c(&quot;player_name&quot;, &quot;stand&quot;, &quot;season&quot;)
 )
 
 launch_angle_vs_gidp_bip &lt;-
@@ -1628,7 +1629,7 @@ Let’s check our data to confirm that it doesn’t contain any other
 pop-ups or fly balls that were recorded as GIDPs, using a 30˚ launch
 angle as a cutoff.</p>
 <pre class="r"><code>filter(knn_data, is_gidp &amp; launch_angle &gt; 30) %&gt;%
-  select(key, is_gidp, game_date, player_name, launch_speed, launch_angle) %&gt;% 
+  select(key, is_gidp, game_date, player_name, launch_speed, launch_angle) %&gt;%
   kable(
     align = rep(&quot;c&quot;, 6),
     caption = &quot;GIDPs with suspiciously high launch angles&quot;
@@ -1951,18 +1952,21 @@ weighted equally when calculating the distance between points.</p>
 
 # caret assigns rownames, so the predictors should be in the form of a data
 # frame instead of a tibble.
-gidp_predictors &lt;- select(knn_data, launch_speed, launch_angle) %&gt;%
+gidp_predictors &lt;- knn_data %&gt;%
+  select(launch_speed, launch_angle) %&gt;%
   as.data.frame()
 gidp_responses &lt;- as.integer(knn_data$is_gidp)
 
 preprocessing &lt;- preProcess(
-  gidp_predictors, method = &quot;range&quot;, rangeBounds = c(0, 1))
+  gidp_predictors,
+  method = &quot;range&quot;, rangeBounds = c(0, 1)
+)
 gidp_predictors &lt;- predict(preprocessing, gidp_predictors)
 
 train_indices &lt;- createDataPartition(gidp_responses, p = 0.8, list = FALSE)
-train_gidp_predictors &lt;- gidp_predictors[train_indices,]
+train_gidp_predictors &lt;- gidp_predictors[train_indices, ]
 train_gidp_responses &lt;- gidp_responses[train_indices]
-test_gidp_predictors &lt;- gidp_predictors[-train_indices,]
+test_gidp_predictors &lt;- gidp_predictors[-train_indices, ]
 test_gidp_responses &lt;- gidp_responses[-train_indices]</code></pre>
 <p><em>k</em>-nearest neighbour models only have one hyperparameter,
 <em>k</em>. It controls the number of nearest neighbours whose responses
@@ -2001,7 +2005,7 @@ dataset:</p>
 )
 
 test_gidp_predictions &lt;- predict(xgidp_knn, newdata = test_gidp_predictors)
-knn_test_results &lt;- 
+knn_test_results &lt;-
   postResample(pred = test_gidp_predictions, obs = test_gidp_responses)</code></pre>
 <p>The RMSE is actually slightly lower on the test dataset (0.294) than
 it was on the training dataset, which is great, as it suggests that we
