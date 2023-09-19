@@ -781,7 +781,7 @@ creating some columns:</p>
 <ul>
 <li>The “on_1b” column should contain logicals that record whether or
 not the base is occupied.</li>
-<li>An “is_PA” column that records which pitches ended plate
+<li>An “ended_PA” column that records which pitches ended plate
 appearances.</li>
 <li>A “key” column that holds a unique ID value for each pitch.</li>
 <li>A “season” column that holds the season each pitch was thrown
@@ -796,7 +796,7 @@ in.</li>
       &quot;fielders_choice_out&quot;, &quot;fielders_choice&quot;, &quot;strikeout_double_play&quot;,
       &quot;sac_fly_double_play&quot;, &quot;triple_play&quot;, &quot;double_play&quot;, &quot;sac_fly&quot;
     ),
-    is_PA = is_ball_in_play | events %in% c(
+    ended_PA = is_ball_in_play | events %in% c(
       &quot;walk&quot;, &quot;strikeout&quot;, &quot;hit_by_pitch&quot;, &quot;catcher_interf&quot;
     ),
     key = 1:nrow(all_pitches),
@@ -848,7 +848,7 @@ launch_angle
 is_ball_in_play
 </th>
 <th style="text-align:center;">
-is_PA
+ended_PA
 </th>
 <th style="text-align:center;">
 key
@@ -2071,7 +2071,8 @@ all_xGIDP_predictors &lt;- select(all_balls_in_play, launch_speed, launch_angle)
 all_xGIDP_predictors &lt;- predict(preprocessing, all_xGIDP_predictors)
 
 all_balls_in_play &lt;- all_balls_in_play %&gt;%
-  mutate(xGIDP = predict(xgidp_knn, all_xGIDP_predictors))
+  mutate(xGIDP = predict(xgidp_knn, all_xGIDP_predictors)) %&gt;%
+  write_csv(xgidp_for_balls_in_play_csv)
 
 xGIDP_leaderboard &lt;- all_balls_in_play %&gt;%
   summarize(
