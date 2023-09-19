@@ -1,0 +1,653 @@
+---
+title: "To Swing or Not to Swing"
+author: "David Cohn"
+date: "October 14, 2023"
+output: html_document
+---
+
+In [part one](https://decohn.github.io/statcast-explorations/topics/situational-hitting/01.anatomy_of_a_double_play.html)
+of this series, I began my exploration of situational hitting by asking whether
+batters and pitchers alter their approaches in double play situations in an
+attempt to avoid or induce double plays, respectively. As a necessary first
+step, I constructed a *k*-nearest neighbours model to calculate the xGIDP
+(expected likelihood of a ground ball double play) for every batted ball, based
+on its launch speed and angle.
+
+The logical next step is to ask whether xGIDP consistently differs - either for
+individual players or for the league as a whole - in double play situations. I
+can also explore some of the possible causes for any such difference, including
+pitch selection, pitch location, and swing decisions.
+
+(NTS: this is getting very long and there's still more analysis to add. think
+carefully about what actually belongs here and what should either be cut or 
+moved to a later part)
+
+## Part Two: To Swing or Not to Swing
+
+```{r setup, echo = FALSE, message = FALSE}
+knitr::opts_chunk$set(echo = TRUE, message = FALSE, warning = FALSE)
+here::i_am("topics/situational-hitting/02.to_swing_or_not_to_swing.Rmd")
+suppressPackageStartupMessages({
+  library(tidyverse)
+  library(glue)
+  library(caret)
+  library(here)
+  library(kableExtra)
+  library(gridExtra)
+  library(baseballr)
+})
+
+all_pitches_csv <- here("data", "all_pitches.csv")
+xgidp_for_balls_in_play_csv <- here("data", "xgidp_for_bip.csv")
+chadwick_register_csv <- here("data", "chadwick_register.csv")
+```
+
+### Load Data
+
+In this analysis, we can make use of the pitch-by-pitch data that we retrieved
+using the Statcast search for the 2021 and 2022 regular seasons in Part One.
+
+In addition to all of the columns that we retained in Part One, we'll need some
+new ones, as we'd like to analyze pitch selection - both on the part of pitchers
+and batters. These additional columns are the following:
+
+- bb_type
+- pitch_type
+- release_speed
+- balls
+- strikes
+- pfx_x
+- pfx_z
+- plate_x
+- plate_z
+- sz_top
+- sz_bot
+- estimated_ba_using_speedangle
+- pitcher...8 (renamed to pitcher_id)
+
+```{r load-all-pitches}
+all_pitches <- read_csv(all_pitches_csv, show_col_types = FALSE) %>%
+  select(
+    game_date, player_name, events, description, stand, bb_type, on_1b, on_2b,
+    on_3b, outs_when_up, launch_speed, launch_angle, pitch_type, release_speed,
+    balls, strikes, pfx_x, pfx_z, plate_x, plate_z, sz_top, sz_bot,
+    estimated_ba_using_speedangle, pitcher_id = pitcher...8
+  )
+```
+
+### Clean Data
+
+As in Part One, it will be advantageous to create and modify certain columns.
+All of the changes specified in Part One will be made, in addition to the
+following:
+
+- An "is_ball_in_play" column that records whether the plate appearance ends on
+the pitch by virtue of the batter making contact
+- An "is_PA" column that records whether the pitch ends a plate appearance, as
+defined in the denominator of on-base percentage
+- An "is_AB" column that records whether the pitch ends an at-bat
+- A "total_bases" column that records how many total bases were recorded by the
+batter on the pitch.
+
+```{r create-and-modify-all-pitches-columns}
+all_pitches <- all_pitches %>%
+  mutate(
+    across(starts_with("on_"), ~ !is.na(.x)),
+    is_ball_in_play = events %in% c(
+      "single", "field_out", "home_run", "grounded_into_double_play",
+      "force_out", "double", "triple", "sac_bunt", "field_error",
+      "fielders_choice_out", "fielders_choice", "strikeout_double_play",
+      "sac_fly_double_play", "triple_play", "double_play", "sac_fly"
+    ),
+    ended_PA = is_ball_in_play
+      | events %in% c("walk", "strikeout", "hit_by_pitch", "catcher_interf"),
+    is_PA = ended_PA & !(events %in% c("sac_bunt", "catcher_interf")),
+    is_AB = is_PA & !(events %in% c("walk", "hit_by_pitch", "sac_fly")),
+    total_bases = case_when(
+      events == "single" ~ 1,
+      events == "double" ~ 2,
+      events == "triple" ~ 3,
+      events == "home_run" ~ 4,
+      TRUE ~ 0
+    ),
+    season = year(game_date),
+    key = 1:nrow(all_pitches)
+  )
+```
+
+We'll also want to merge in the xGIDP calculations from Part One for every ball
+that was put in play.
+
+```{r merge-in-xGIDP-calculations}
+all_balls_in_play <-
+  read_csv(xgidp_for_balls_in_play_csv, show_col_types = FALSE)
+
+all_pitches <- left_join(all_pitches, all_balls_in_play)
+```
+
+And finally, we'll want to convert the "pitcher_id" column into pitchers' names.
+We can do this using the
+[Chadwick Baseball Bureau Register](https://github.com/chadwickbureau/register).
+As usual, we'll save the data we download locally, to avoid having to download
+it repeatedly.
+
+```{r download-chadwick-bureau-player-name-register, eval = FALSE}
+write_csv(chadwick_player_lu(), chadwick_register_csv)
+```
+
+```{r convert-pitcher-ids-to-names}
+player_register <- read_csv(chadwick_register_csv, show_col_types = FALSE) %>%
+  filter(!is.na(key_mlbam)) %>%
+  mutate(name_from_register = glue("{name_last}, {name_first}")) %>%
+  select(key_mlbam, name_from_register)
+
+all_pitches <- all_pitches %>%
+  left_join(player_register, by = c("pitcher_id" = "key_mlbam")) %>%
+  select(-pitcher_id) %>%
+  rename(pitcher_name = name_from_register)
+```
+
+### Analysis
+
+#### Batting Statistics in Double Play Situations
+
+Let's start by asking whether the average xGIDP of balls in play is different in
+double play situations vs. non-double play situations.
+
+```{r calculate-gidp-situation-batter-stats}
+all_pitches <- mutate(all_pitches, is_DP_situation = on_1b & (outs_when_up < 2))
+
+summarize_batter_stats <- function(PAs, summary_column_name, caption) {
+  batter_stats <- PAs %>% 
+    summarize(
+      BA = sum(total_bases > 0) / sum(is_AB),
+      OBP = (sum(total_bases > 0) + sum(events %in% c("walk", "hit_by_pitch")))
+        / sum(is_PA),
+      SLG = sum(total_bases) / sum(is_AB),
+      BB_perc = 100 * sum(events == "walk") / sum(is_PA),
+      K_perc = 100 * sum(events == "strikeout") / sum(is_PA),
+      HR_perc = 100 * sum(events == "home_run") / sum(is_PA),
+      xGIDP = mean(xGIDP, na.rm = TRUE),
+      xBABIP = mean(estimated_ba_using_speedangle, na.rm = TRUE),
+      .groups = "keep"
+    )
+  
+  # calculate actual and expected BA for each type of ball in play
+  BABIPs <- PAs %>%
+    filter(!is.na(bb_type)) %>%
+    group_by(bb_type, .add = TRUE) %>%
+    summarize(
+      BA = sum(total_bases > 0) / sum(is_AB),
+      xBA = mean(estimated_ba_using_speedangle, na.rm = TRUE),
+    ) %>%
+    pivot_wider(names_from = bb_type, values_from = c("BA", "xBA"))
+  
+  batter_stats <- inner_join(batter_stats, BABIPs)
+  
+  return_kbl <- batter_stats %>%
+    kable(
+      align = rep("c", ncol(batter_stats)),
+      digits = 3,
+      col.names = c(
+        summary_column_name, "BA", "OBP", "SLG", "BB%", "K%", "HR%", "xGIDP",
+        "xBABIP", "BA on FBs", "BA on GBs", "BA on LDs", "BA on PUs",
+        "xBA on FBs", "xBA on GBs", "xBA on LDs", "xBA on PUs"
+      ),
+      caption = caption
+    ) %>%
+    kable_styling(
+      bootstrap_options = c("striped", "hover", "condensed", "responsive")
+    )
+  
+  return(return_kbl)
+}
+
+all_pitches %>%
+  filter(ended_PA) %>%
+  group_by(is_DP_situation) %>%
+  summarize_batter_stats(
+    summary_column_name = "GIDP situation?",
+    caption = "Batting statistics by the presence of a double play situation"
+  )
+```
+
+The difference in xGIDP here (.143 vs. .141) isn't significant, which is
+disappointing if you (like me) were hoping to discover evidence of situational
+hitting! There are still some interesting results here, though. The quality of
+contact that batters make isn't altered in double-play situations (xBA of .321
+vs. .320), but batting averages spike by nearly 30 points when the double-play
+is possible. The first explanation that comes to mind is that this results from
+the runner being held on first base, but the 19 point increase in batting
+average on ground balls is actually lower than the increase in batting average
+on line drives and fly balls.
+
+To dig into this a bit further, we can try dividing plate appearances into
+smaller groups based on the precise base-out situation.
+
+```{r refined-comparison}
+# on_1b & (outs_when_up < 2) ~ "GIDP situation",
+# on_1b & (outs_when_up == 2) ~ "Runner on 1st, 2 out",
+# on_2b | on_3b ~ "Runner on 2nd or 3rd",
+# TRUE ~ "Bases empty"
+
+all_pitches <- all_pitches %>%
+  mutate(
+    base_out_situation = case_when(
+      on_1b & !(on_2b | on_3b) & (outs_when_up < 2) ~ "Runner on 1st only, < 2 out",
+      on_1b & !(on_2b | on_3b) & (outs_when_up == 2) ~ "Runner on 1st only, 2 out",
+      on_1b & on_2b & (outs_when_up < 2) ~ "Runners on 1st and 2nd, < 2 out",
+      on_1b & on_2b & (outs_when_up == 2) ~ "Runners on 1st and 2nd, 2 out",
+      (!on_1b) & (on_2b | on_3b) ~ "Runner(s) on 2nd or 3rd, 1st base empty",
+      !(on_1b | on_2b | on_3b) ~ "Bases empty"
+    )
+  )
+
+all_pitches %>%
+  filter(ended_PA) %>%
+  group_by(base_out_situation) %>%
+  summarize_batter_stats(
+    summary_column_name = "Situation",
+    caption = "Batting statistics by various base-out situations"
+  )
+```
+
+We could check how individual players fare in these comparisons by making a
+leaderboard of individuals who greatly lower or raise their xGIDP in double play
+situations.
+
+```{r individual-players-situational-xGIDP}
+get_individual_situational_xGIDP <- function(pitch_data, is_for_batters) {
+  if(is_for_batters) {
+    pitch_data <- pitch_data %>%
+      group_by(player_name, season, stand, is_DP_situation)
+  } else {
+    pitch_data <- pitch_data %>%
+      group_by(pitcher_name, season, is_DP_situation)
+  }
+  
+  individual_situational_xGIDP <- pitch_data %>%
+    filter(ended_PA) %>%
+    filter(n() >= 50) %>%
+    summarize(xGIDP = mean(xGIDP, na.rm = TRUE), .groups = "drop") %>%
+    mutate(
+      situation = if_else(is_DP_situation, "GIDP_situation", "other_situation"),
+      is_DP_situation = NULL
+    ) %>%
+    pivot_wider(
+      names_from = situation, values_from = xGIDP, names_prefix = "xGIDP_in_"
+    ) %>%
+    filter(if_all(starts_with("xGIDP"), ~ !is.na(.x))) %>%
+    mutate(diff_xGIDP = xGIDP_in_GIDP_situation - xGIDP_in_other_situation)
+
+  return(individual_situational_xGIDP)
+}
+
+get_diff_xGIDP_leaderboard <- function(individual_xGIDP, is_for_batters) {
+  min_max_diff_xGIDP <- bind_rows(
+    slice_min(individual_xGIDP, order_by = diff_xGIDP, n = 5),
+    slice_max(individual_xGIDP, order_by = diff_xGIDP, n = 5)
+  )
+  
+  kbl_col_names <- c(
+    "Batter", "Season", "Bats", "xGIDP in non-GIDP situations",
+    "xGIDP in GIDP situations", "xGIDP change in GIDP situations"
+  )
+  
+  if(!is_for_batters) {
+    kbl_col_names <- kbl_col_names[kbl_col_names != "Bats"]
+  }
+  
+  leaderboard <- min_max_diff_xGIDP %>%
+    kbl(
+      col.names = kbl_col_names, digits = 3,
+      align = rep("c", ncol(min_max_diff_xGIDP)) 
+    ) %>%
+    kable_styling(
+      full_width = FALSE,
+      bootstrap_options = c("striped", "hover", "condensed", "responsive")
+    ) %>%
+    pack_rows("Largest decrease in xGIDP", 1, 5) %>%
+    pack_rows("Largest increase in xGIDP", 6, 10)
+  
+  return(leaderboard)
+}
+
+batter_situational_xGIDP <-
+  get_individual_situational_xGIDP(all_pitches, is_for_batters = TRUE)
+
+pitcher_situational_xGIDP <-
+  get_individual_situational_xGIDP(all_pitches, is_for_batters = FALSE)
+
+get_diff_xGIDP_leaderboard(batter_situational_xGIDP, is_for_batters = TRUE)
+get_diff_xGIDP_leaderboard(
+  pitcher_situational_xGIDP, is_for_batters = FALSE
+)
+```
+
+Then correlate 2021 and 2022 values for these players to see if there's any
+evidence that selectively raising/lowering xGIDP in these situations is a
+repeatable skill.
+
+```{r year-over-year-individual-situational-xGIDP-correlations}
+plot_season_diff_xGIDP_correlations <- function(xGIDP_leaderboard) {
+  yearly_individual_situational_xGIDP <- xGIDP_leaderboard %>%
+    select(-starts_with("xGIDP")) %>%
+    pivot_wider(
+      names_from = season, values_from = diff_xGIDP,
+      names_prefix = "diff_xGIDP_"
+    ) %>%
+    filter(if_all(starts_with("diff_xGIDP_"), ~ !is.na(.x)))
+
+  yearly_xGIDP_plot <- yearly_individual_situational_xGIDP %>%
+    ggplot(aes(x = diff_xGIDP_2021, y = diff_xGIDP_2022)) +
+    geom_point() +
+    coord_equal() +
+    xlim(c(-0.08, 0.08)) +
+    ylim(c(-0.08, 0.08)) +
+    xlab("2021 xGIDP change in GIDP situations") +
+    ylab("2022 xGIDP change in GIDP situations")
+  
+  plot(yearly_xGIDP_plot)
+  
+  return(yearly_individual_situational_xGIDP)
+}
+
+batter_yearly_situational_xGIDP <-
+  plot_season_diff_xGIDP_correlations(batter_situational_xGIDP)
+
+pitcher_yearly_situational_xGIDP <-
+  plot_season_diff_xGIDP_correlations(pitcher_situational_xGIDP)
+```
+
+Well, it ... sure looks like there's nothing doing here. The r^2^ value here is
+`r round(cor(batter_yearly_situational_xGIDP$diff_xGIDP_2021, batter_yearly_situational_xGIDP$diff_xGIDP_2022, method = "pearson") ^ 2, digits = 3)`
+for batters, and `r round(cor(pitcher_yearly_situational_xGIDP$diff_xGIDP_2021, pitcher_yearly_situational_xGIDP$diff_xGIDP_2022, method = "pearson") ^ 2, digits = 3)`
+for pitchers.
+
+### Do pitchers or batters specifically attempt to induce/avoid GIDPs?
+
+While there doesn't appear to be any evidence that pitchers or batters
+successfully induce or avoid GIDPs, respectively, it may still be interesting to
+ask whether any players *attempt* to do so.
+
+Certain types of pitches and certain pitch locations may be more likely to
+result in GIDPs. We can ask a) do pitchers throw more GIDP-inducing pitches when
+in GIDP situations, and b) are batters less likely to swing at GIDP-inducing
+pitches when in GIDP situations?
+
+We'll first have to scale the height of pitches to each
+individual batter's strike zone - a pitch that's below the knees of a tall
+batter might actually be a strike to a shorter batter. We'll also redefine the
+horizontal coordinate of pitch location and pitch break to account for the
+batter's handedness, such that negative values always represent inside pitches
+and positive values represent outside pitches.
+
+```{r scale-pitch-coordinates}
+all_pitches <- all_pitches %>%
+  mutate(
+    scaled_plate_z = 1.5 + 2 * (plate_z - sz_bot) / (sz_top - sz_bot),
+    scaled_plate_x = if_else(stand == "L", -plate_x, plate_x),
+    scaled_pfx_x = if_else(stand == "L", -pfx_x, pfx_x),
+    pitch_group = case_when(
+      pitch_type %in% c('FF', 'FC', 'SI', 'FA') ~ 'Fastball',
+      pitch_type %in% c('SL', 'CU', 'KC', 'KN', 'EP', 'ST', 'SV') ~ 'Breaking',
+      pitch_type %in% c('FS', 'CH', 'FO', 'SC') ~ 'Off-speed',
+      TRUE ~ NA
+    ) 
+  )
+```
+
+Now we can examine how pitch location, pitch type, and break are associated with
+xGIDP.
+
+```{r pitch-type-vs-xGIDP}
+xgidp_by_pitch_characteristics <- all_pitches %>%
+  filter(
+    if_all(
+      c("xGIDP", "scaled_plate_x", "scaled_plate_z", "scaled_pfx_x", "pfx_z"),
+      ~ !is.na(.x)
+    )
+  ) %>%
+  select(
+    pitch_group, pitch_type, release_speed, scaled_plate_x, scaled_plate_z,
+    scaled_pfx_x, pfx_z, xGIDP
+  )
+
+major_pitches <- xgidp_by_pitch_characteristics %>%
+  filter(n() > 1000, .by = pitch_type) %>%
+  pull(pitch_type) %>%
+  unique()
+
+xgidp_by_pitch_characteristics %>%
+  filter(pitch_type %in% major_pitches) %>%
+  ggplot(aes(x = fct_reorder(pitch_type, xGIDP, .fun = mean), y = xGIDP)) +
+  geom_violin(aes(fill = pitch_group)) +
+  labs(
+    title = "xGIDP distribution by pitch type",
+    x = "Pitch type",
+    fill = "Pitch group"
+  )
+```
+
+It seems like sinkers (SI) and splitters (FS) are the most effective pitches at
+inducing double plays, while sweepers (ST) and four-seam fastballs (FF) are the
+least effective.
+
+```{r pitch-location-vs-xGIDP}
+xgidp_by_pitch_characteristics %>%
+  filter(
+    between(scaled_plate_x, -1.2, 1.2) & between(scaled_plate_z, 0.9, 4.1)
+  ) %>%
+  ggplot() +
+  stat_summary_2d(
+    aes(x = scaled_plate_x, y = scaled_plate_z, z = xGIDP), binwidth = 0.2
+  ) +
+  scale_fill_fermenter(palette = "Spectral", n.breaks = 10) +
+  geom_rect(
+    aes(xmin = -17/24, xmax = 17/24, ymin = 1.5, ymax = 3.5),
+    colour = "black",
+    fill = NA
+  ) +
+  coord_equal(xlim = c(-1.1, 1.1), ylim = c(1, 4)) +
+  labs(
+    x = "Distance from centre of plate (ft)",
+    y = "Height (ft)",
+    fill = "Median xGIDP",
+    title = "Median xGIDP by pitch location"
+  )
+```
+
+xGIDP is clearly highest for low pitches and outside pitches: pitches both down
+and away reach xGIDPs of > 0.2, while pitches up and in have xGIDPs of < 0.1.
+
+```{r pitch-break-vs-xGIDP}
+xgidp_by_pitch_characteristics %>%
+  ggplot(mapping = aes(x = pfx_z, y = xGIDP)) +
+  geom_smooth() +
+  geom_point(alpha = 0.05)
+
+xgidp_by_pitch_characteristics %>%
+  ggplot(mapping = aes(x = scaled_pfx_x, y = xGIDP)) +
+  geom_smooth() +
+  geom_point(alpha = 0.05)
+```
+
+Obviously these factors all confound upon each other, so a linear model might
+probably be necessary at some point. In the meantime, I'll generate a table that
+includes the median xGIDP for each pitch type, along with its median location
+and break.
+
+```{r pitch-characteristics-vs-xGIDP-summary}
+xgidp_by_pitch_summary_table <- xgidp_by_pitch_characteristics %>%
+  filter(pitch_type %in% major_pitches, .by = pitch_type) %>%
+  summarize(
+    count = n(),
+    mean_xGIDP = mean(xGIDP),
+    across(
+      c(
+        "release_speed", "scaled_plate_x", "scaled_plate_z", "scaled_pfx_x",
+        "pfx_z"
+      ),
+      median,
+      .names = "median_{.col}"
+    ),
+    .by = pitch_type
+  ) %>%
+  arrange(desc(mean_xGIDP)) 
+
+xgidp_by_pitch_summary_table %>%
+  kable(
+    align = rep("c", ncol(xgidp_by_pitch_summary_table)),
+    digits = 2,
+    col.names = c(
+      "Pitch", "Count", "Mean xGIDP", "Median speed (mph)",
+      "Median x coordinate (ft)", "Median z coordinate (ft)",
+      "Median horizontal break (ft)", "Median vertical break (ft)"
+    ),
+    caption = "xGIDP, location, and break by pitch type"
+  ) %>%
+  kable_styling(
+    bootstrap_options = c("striped", "hover", "condensed", "responsive")
+  )
+```
+
+What we really care about though is: do pitchers shift what they throw, and do
+they shift where they throw it?
+
+```{r arsenal-by-gidp-situation}
+situational_arsenal <- all_pitches %>%
+  filter(pitch_type %in% major_pitches) %>%
+  summarize(count = n(), .by = c("pitch_type", "base_out_situation")) %>%
+  pivot_wider(names_from = base_out_situation, values_from = count) %>%
+  mutate(across(!pitch_type, ~ .x / sum(.x))) %>%
+  arrange(desc(`Bases empty`))
+
+situational_arsenal %>%
+  kbl(digits = 3, align = rep("c", ncol(situational_arsenal))) %>%
+  kable_styling(
+    full_width = FALSE,
+    bootstrap_options = c("striped", "hover", "condensed", "responsive")
+  ) 
+```
+Hmm... this is interesting, but I wouldn't mind calculating the proportions for
+each pitch based ONLY on pitchers that actually have such pitches in their
+arsenal.
+
+pitchers_throwing_pitchers is a named vector where the names are pitch codes and
+the values are the pitchers who have the pitches in their arsenal.
+
+```{r arsenal-by-gidp-situation-for-possessing-pitchers}
+pitches_by_pitcher <- all_pitches %>%
+  summarize(pitches = n(), .by = pitcher_name)
+
+eligible_pitchers <- pitches_by_pitcher %>%
+  filter(pitches >= 200) %>%
+  pull(pitcher_name)
+
+pitchers_throwing_pitches <- all_pitches %>%
+  filter(pitcher_name %in% eligible_pitchers) %>%
+  summarize(count = n(), .by = c("pitch_type", "pitcher_name")) %>%
+  mutate(
+    frequency = count / sum(count),
+    count = NULL,
+    .by = pitcher_name
+  ) %>%
+  filter(frequency >= 0.03) %>%
+  summarize(
+    pitchers = list(pitcher_name),
+    .by = pitch_type
+  ) %>%
+  deframe()
+
+get_pitch_usage_by_situation <- function(pitch) {
+  usage_by_situation <- all_pitches %>%
+    filter(pitcher_name %in% pitchers_throwing_pitches[[pitch]]) %>%
+    summarize(count = n(), .by = c("pitch_type", "base_out_situation")) %>%
+    mutate(
+      frequency = count / sum(count),
+      count = NULL,
+      .by = base_out_situation
+    ) %>%
+    filter(pitch_type == pitch)
+  
+  return(usage_by_situation)
+}
+
+situational_arsenals <- map(major_pitches, get_pitch_usage_by_situation) %>%
+  bind_rows() %>%
+  pivot_wider(names_from = base_out_situation, values_from = frequency)
+
+situational_arsenals %>%
+  kbl(digits = 3, align = rep("c", ncol(situational_arsenals))) %>%
+  kable_styling(
+    full_width = FALSE,
+    bootstrap_options = c("striped", "hover", "condensed", "responsive")
+  ) 
+```
+There's a lot of information here, but what stands out to me is the increase in
+sinkers - sinkerballers throw 26% sinkers with the bases empty or with a runner
+on first and less than 2 out, but 30% sinkers when in a GIDP situation. Might be
+interesting to look at how the FF to SI ratio of individual pitchers changes in
+GIDP situations, and then to see if there's year-to-year correlation??
+
+```{r pitch-selection-FF-SI-pitchers}
+ff_si_pitchers <- intersect(pitchers_throwing_pitches[["FF"]], pitchers_throwing_pitches[["SI"]])
+
+ff_si_pitcher_situational_arsenal <- all_pitches %>%
+  filter(
+    pitch_type %in% c("FF", "SI"),
+    pitcher_name %in% ff_si_pitchers
+  ) %>%
+  summarize(count = n(), .by = c("pitch_type", "is_DP_situation")) %>%
+  pivot_wider(names_from = is_DP_situation, values_from = count) %>%
+  mutate(across(!pitch_type, ~ .x / sum(.x)))
+
+ff_si_pitcher_situational_arsenal %>%
+  kbl(
+    digits = 3, align = rep("c", ncol(ff_si_pitcher_situational_arsenal)),
+    col.names = c("Pitch", "Not GIDP Situation", "GIDP Situation"),
+    caption = "Relative pitch frequencies for pitchers throwing FFs and SIs"
+  ) %>%
+  kable_styling(
+    full_width = FALSE,
+    bootstrap_options = c("striped", "hover", "condensed", "responsive")
+  )
+```
+
+And now let's break that down by individual pitchers and by season, so that we
+can try to see if this is a consistent trend.
+```{r pitch-selection-individual-FF-SI-pitchers}
+ff_si_pitcher_situational_arsenals <- all_pitches %>%
+  filter(
+    pitch_type %in% c("FF", "SI"),
+    pitcher_name %in% ff_si_pitchers
+  ) %>%
+  summarize(count = n(), .by = c("pitcher_name", "season", "pitch_type", "is_DP_situation"))
+
+eligible_ff_si_pitchers <- ff_si_pitcher_situational_arsenals %>%
+  filter(count >= 20) %>%
+  count(pitcher_name) %>%
+  filter(n == 8) %>%
+  pull(pitcher_name)
+  
+ff_si_pitcher_situational_arsenals <- ff_si_pitcher_situational_arsenals %>%
+  filter(pitcher_name %in% eligible_ff_si_pitchers) %>%
+  pivot_wider(names_from = pitch_type, values_from = count) %>%
+  mutate(FF_share = FF / (FF + SI)) %>%
+  select(-c("FF", "SI")) %>%
+  pivot_wider(names_from = is_DP_situation, names_prefix = "FF_share_", values_from = FF_share) %>%
+  mutate(FF_share_shift_in_GIDP = FF_share_TRUE - FF_share_FALSE) %>%
+  select(-c("FF_share_TRUE", "FF_share_FALSE")) %>%
+  pivot_wider(names_from = season, names_prefix = "FF_share_shift_", values_from = FF_share_shift_in_GIDP)
+
+ggplot(ff_si_pitcher_situational_arsenals) +
+  geom_point(mapping = aes(x = FF_share_shift_2021, y = FF_share_shift_2022))
+```
+
+The r^2^ value here is
+`r round(cor(ff_si_pitcher_situational_arsenals$FF_share_shift_2021, ff_si_pitcher_situational_arsenals$FF_share_shift_2022, method = "pearson") ^ 2, digits = 3)`.
+
+This is a really, really weak correlation. Not a lot of evidence that the habits
+of these pitchers are consistent from year-to-year.
+
+TODO: continue onward with pitch *location*??
