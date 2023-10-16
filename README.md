@@ -8,7 +8,7 @@ MLB batters, pitchers, fielders, and managers make decisions, leveraging the
 
 ## Investigations
 
-### [Situational Hitting](https://github.com/decohn/statcast-explorations/topics/situational-hitting)
+### [Situational Hitting](https://github.com/decohn/statcast-explorations/tree/main/topics/situational-hitting)
 
 Imagine it's the bottom of the 9th inning. The score is tied and there are two
 outs, but there's a runner on 3rd. The batter who steps to the plate knows that
